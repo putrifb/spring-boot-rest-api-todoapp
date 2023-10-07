@@ -41,7 +41,7 @@ public class CategoryService {
     }
 
     public List<CategoryResponse> getAllCategory(){
-        List<Category> categories = categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findByIsDeletedFalse();
 
         List<CategoryResponse> categoryResponses = new ArrayList<>();
 
@@ -50,33 +50,35 @@ public class CategoryService {
             categoryResponse.setId(category.getId());
             categoryResponse.setTitle(category.getTitle());
 
+
             categoryResponses.add(categoryResponse);
         }
+
 
         return categoryResponses;
     }
 
-    public CategoryResponse getCategoryById(Long id) {
-        Optional<Category> optionalCategory = categoryRepository.findById(id);
+    public CategoryResponse getCategoryById(Long categoryId) {
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
 
-        if (optionalCategory.isPresent() && !optionalCategory.get().getIsDeleted()) {
+        if (optionalCategory.isPresent()) {
             Category category = optionalCategory.get();
             CategoryResponse categoryResponse = new CategoryResponse();
             categoryResponse.setId(category.getId());
-            categoryResponse.setTitle(categoryResponse.getTitle() != null ? category.getTitle() : "");
+            categoryResponse.setTitle(category.getIsDeleted() ? "" : category.getTitle());
             return categoryResponse;
         } else {
             return null;
         }
     }
 
-   public CategoryResponse updateCategory(Long categoryId, String title) {
+   public CategoryResponse updateCategory(Long categoryId, CategoryRequest request) {
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
 
-        if (optionalCategory.isPresent() && !optionalCategory.get().getIsDeleted()) {
+        if (optionalCategory.isPresent()) {
 
             Category category = optionalCategory.get();
-            category.setTitle(title);
+            category.setTitle(request.getTitle());
 
             ZoneId zoneId =ZoneId.of("Asia/Jakarta");
             ZonedDateTime updateAt = ZonedDateTime.now(zoneId);
@@ -86,6 +88,7 @@ public class CategoryService {
             CategoryResponse categoryResponse = new CategoryResponse();
 
             categoryResponse.setId(updateCategory.getId());
+            categoryResponse.setTitle(updateCategory.getTitle());
             return categoryResponse;
         } else {
             return null;
@@ -95,20 +98,20 @@ public class CategoryService {
     public Boolean deleteCategory(Long categoryId) {
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
 
-//        if (optionalCategory.isPresent()){
-//            Category category = optionalCategory.get();
-//            category.setIsDeleted(true);
-//            categoryRepository.save(category);
-//            return true;
-//        } else {
-//            return false;
-//        }
-
         if (optionalCategory.isPresent()){
+            Category category = optionalCategory.get();
+            category.setIsDeleted(true);
+            categoryRepository.save(category);
+            return true;
+        } else {
             return false;
         }
-        categoryRepository.deleteById(categoryId);
-        return true;
+
+//        if (optionalCategory.isPresent()){
+//            return false;
+//        }
+//        categoryRepository.deleteById(categoryId);
+//        return true;
     }
 
 

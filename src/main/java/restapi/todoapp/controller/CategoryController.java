@@ -13,38 +13,34 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping(path = "/api/v1")
+@RequestMapping(path = "/api/v1/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @PostMapping(path = "/categories")
+    @PostMapping
     public void insertCategory(@RequestBody CategoryRequest categoryRequest){
         categoryService.insertCategory(categoryRequest);
     }
 
-    @GetMapping(path = "/categories")
+    @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAllCategory(){
         return ResponseEntity.ok(categoryService.getAllCategory());
     }
 
-    @GetMapping( path = "/categories/{categoryId}")
+    @GetMapping( path = "/{categoryId}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable(name = "categoryId") Long categoryId) {
         return ResponseEntity.ok(categoryService.getCategoryById(categoryId));
     }
 //
-    @PutMapping("/categories/{categoryId}")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long categoryId, @RequestBody Map<String, String> request) {
-        String newTitle = request.get("title");
-
-            CategoryResponse categoryResponse = categoryService.updateCategory(categoryId, newTitle);
-            return ResponseEntity.ok(categoryResponse);
-
-//        return ResponseEntity.ok(categoryService.updateCategory(categoryId, request.getTitle()));
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long categoryId, @RequestBody CategoryRequest request) {
+        CategoryResponse response = categoryService.updateCategory(categoryId, request);
+        return ResponseEntity.ok(response);
     }
 //
-    @DeleteMapping("/categories/{categoryId}")
+    @DeleteMapping("/{categoryId}")
     public ResponseEntity<Boolean> deleteCategory(@PathVariable Long categoryId) {
         Boolean isDeleted = categoryService.deleteCategory(categoryId);
         if (isDeleted){
