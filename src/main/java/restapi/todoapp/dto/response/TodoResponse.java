@@ -13,4 +13,6 @@ public class TodoResponse {
     private Long id;
     private CategoryResponse category;
     private String title;
+    private String description;
+    private String dueDate;
 }
