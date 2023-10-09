@@ -8,6 +8,7 @@ import restapi.todoapp.dto.response.CategoryResponse;
 import restapi.todoapp.dto.response.TodoResponse;
 import restapi.todoapp.entity.Category;
 import restapi.todoapp.entity.Todo;
+import restapi.todoapp.exception.ResourceNotFoundException;
 import restapi.todoapp.repository.CategoryRepository;
 import restapi.todoapp.repository.TodoRepository;
 
@@ -24,13 +25,22 @@ import java.util.Optional;
 public class TodoService {
 
     private  final TodoRepository todoRepository;
-//    private final CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
     public TodoResponse insertTodo(TodoRequest todoRequest){
         Todo todo = new Todo();
 
         todo.setTitle(todoRequest.getTitle());
         todo.setDescription(todoRequest.getDescription());
+
+        Long categoryId = todoRequest.getCategoryId();
+        Optional<Category> categoryOptional = categoryRepository.findByIdAndIsDeletedFalse(categoryId);
+
+        if (categoryOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Category not found");
+        }
+
+        todo.setCategory(categoryOptional.get());
 
         LocalDate dueDate = LocalDate.parse(todoRequest.getDueDate()); //parsing string ke localdate
         todo.setDueDate(dueDate);
