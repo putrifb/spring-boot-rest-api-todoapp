@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
 
 import java.io.Serializable;
 import java.sql.Date;
@@ -23,14 +24,16 @@ public class Todo implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn
-    private Category categoryId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    private Category category;
     private String title;
     private String description;
     private LocalDate dueDate;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
+
+    @Column(name = "is_Deleted", nullable = false)
     private Boolean isDeleted;
 
 }

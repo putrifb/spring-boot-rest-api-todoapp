@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import restapi.todoapp.dto.request.CategoryRequest;
 import restapi.todoapp.dto.response.CategoryResponse;
+import restapi.todoapp.dto.response.CommonResponse;
 import restapi.todoapp.entity.Category;
+import restapi.todoapp.exception.ResourceNotFoundException;
 import restapi.todoapp.repository.CategoryRepository;
 
 import java.time.ZoneId;
@@ -23,7 +25,7 @@ public class CategoryService {
 
 
 
-    public CategoryResponse insertCategory(CategoryRequest categoryRequest) {
+    public CommonResponse insertCategory(CategoryRequest categoryRequest) {
         Category category = new Category();
         category.setTitle(categoryRequest.getTitle());
 
@@ -34,10 +36,10 @@ public class CategoryService {
 
         category.setIsDeleted(false);
         Category savedCategory = categoryRepository.save(category);
-        CategoryResponse response = new CategoryResponse();
-        response.setId(savedCategory.getId());
+//        CategoryResponse response = new CategoryResponse();
+//        response.setId(savedCategory.getId());
 
-        return response;
+        return new CommonResponse(savedCategory.getId());
     }
 
     public List<CategoryResponse> getAllCategory(){
@@ -59,17 +61,28 @@ public class CategoryService {
     }
 
     public CategoryResponse getCategoryById(Long categoryId) {
-        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+        Optional<Category> optionalCategory = categoryRepository.findByIdAndIsDeletedFalse(categoryId);
 
-        if (optionalCategory.isPresent()) {
-            Category category = optionalCategory.get();
-            CategoryResponse categoryResponse = new CategoryResponse();
-            categoryResponse.setId(category.getId());
-            categoryResponse.setTitle(category.getIsDeleted() ? "" : category.getTitle());
-            return categoryResponse;
-        } else {
-            return null;
+//        if (optionalCategory.isPresent()) {
+//            Category category = optionalCategory.get();
+//            CategoryResponse categoryResponse = new CategoryResponse();
+//            categoryResponse.setId(category.getId());
+//            categoryResponse.setTitle(category.getTitle());
+//            return categoryResponse;
+//        } else {
+////            return null;
+//            throw new ResourceNotFoundException("category not found");
+//        }
+
+        if (optionalCategory.isEmpty()){
+            throw new ResourceNotFoundException("category not found");
         }
+
+//        Category category = optionalCategory.get();
+        CategoryResponse categoryResponse = new CategoryResponse();
+        categoryResponse.setId(optionalCategory.get().getId());
+        categoryResponse.setTitle(optionalCategory.get().getTitle());
+        return categoryResponse;
     }
 
    public CategoryResponse updateCategory(Long categoryId, CategoryRequest request) {

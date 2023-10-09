@@ -2,11 +2,13 @@ package restapi.todoapp.controller;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import restapi.todoapp.dto.request.CategoryRequest;
 //import restapi.todoapp.dto.request.UpdateCategoryRequest;
 import restapi.todoapp.dto.response.CategoryResponse;
+import restapi.todoapp.dto.response.CommonResponse;
 import restapi.todoapp.service.CategoryService;
 
 import java.util.List;
@@ -20,8 +22,8 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    public void insertCategory(@RequestBody CategoryRequest categoryRequest){
-        categoryService.insertCategory(categoryRequest);
+    public ResponseEntity<CommonResponse> insertCategory(@RequestBody CategoryRequest categoryRequest){
+       return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.insertCategory(categoryRequest));
     }
 
     @GetMapping
