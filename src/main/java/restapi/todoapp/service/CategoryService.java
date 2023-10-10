@@ -9,6 +9,7 @@ import restapi.todoapp.dto.response.CommonResponse;
 import restapi.todoapp.entity.Category;
 import restapi.todoapp.exception.ResourceNotFoundException;
 import restapi.todoapp.repository.CategoryRepository;
+import restapi.todoapp.repository.TodoRepository;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -22,6 +23,7 @@ public class CategoryService {
 
 
     private final CategoryRepository categoryRepository;
+    private final TodoRepository todoRepository;
 
 
 
@@ -36,8 +38,7 @@ public class CategoryService {
 
         category.setIsDeleted(false);
         Category savedCategory = categoryRepository.save(category);
-//        CategoryResponse response = new CategoryResponse();
-//        response.setId(savedCategory.getId());
+
 
         return new CommonResponse(savedCategory.getId());
     }
@@ -63,68 +64,48 @@ public class CategoryService {
     public CategoryResponse getCategoryById(Long categoryId) {
         Optional<Category> optionalCategory = categoryRepository.findByIdAndIsDeletedFalse(categoryId);
 
-//        if (optionalCategory.isPresent()) {
-//            Category category = optionalCategory.get();
-//            CategoryResponse categoryResponse = new CategoryResponse();
-//            categoryResponse.setId(category.getId());
-//            categoryResponse.setTitle(category.getTitle());
-//            return categoryResponse;
-//        } else {
-////            return null;
-//            throw new ResourceNotFoundException("category not found");
-//        }
-
         if (optionalCategory.isEmpty()){
             throw new ResourceNotFoundException("category not found");
         }
 
-//        Category category = optionalCategory.get();
         CategoryResponse categoryResponse = new CategoryResponse();
         categoryResponse.setId(optionalCategory.get().getId());
         categoryResponse.setTitle(optionalCategory.get().getTitle());
         return categoryResponse;
     }
 
-   public CategoryResponse updateCategory(Long categoryId, CategoryRequest request) {
-        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+   public CommonResponse updateCategory(Long categoryId, CategoryRequest request) {
+        Optional<Category> optionalCategory = categoryRepository.findByIdAndIsDeletedFalse(categoryId);
 
-        if (optionalCategory.isPresent()) {
+       if (optionalCategory.isEmpty()){
+           throw new ResourceNotFoundException("category not found");
+       }
 
-            Category category = optionalCategory.get();
-            category.setTitle(request.getTitle());
+       optionalCategory.get().setTitle(request.getTitle());
 
-            ZoneId zoneId =ZoneId.of("Asia/Jakarta");
-            ZonedDateTime updateAt = ZonedDateTime.now(zoneId);
-            category.setUpdatedAt(updateAt);
+       ZoneId zoneId =ZoneId.of("Asia/Jakarta");
+       ZonedDateTime updateAt = ZonedDateTime.now(zoneId);
+       optionalCategory.get().setUpdatedAt(updateAt);
 
-            Category updateCategory = categoryRepository.save(category);
-            CategoryResponse categoryResponse = new CategoryResponse();
+       Category updateCategory = categoryRepository.save(optionalCategory.get());
 
-            categoryResponse.setId(updateCategory.getId());
-            categoryResponse.setTitle(updateCategory.getTitle());
-            return categoryResponse;
-        } else {
-            return null;
-        }
+       return new CommonResponse(updateCategory.getId());
     }
 
-    public Boolean deleteCategory(Long categoryId) {
-        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+    public void deleteCategory(Long categoryId) {
+        Optional<Category> optionalCategory = categoryRepository.findByIdAndIsDeletedFalse(categoryId);
 
-        if (optionalCategory.isPresent()){
-            Category category = optionalCategory.get();
-            category.setIsDeleted(true);
-            categoryRepository.save(category);
-            return true;
-        } else {
-            return false;
+        if (optionalCategory.isEmpty()){
+            throw new ResourceNotFoundException("Category not found with id : " + categoryId);
         }
 
-//        if (optionalCategory.isPresent()){
-//            return false;
-//        }
-//        categoryRepository.deleteById(categoryId);
-//        return true;
+        Long todoCount = todoRepository.countByIsDeletedTrueAndCategory_Id(categoryId);
+
+        if (todoCount > 0 ){
+            throw new ResourceNotFoundException("Category is in use by existing todos and cannot be deleted.");
+        }
+
+        categoryRepository.deleteById(categoryId);
     }
 
 

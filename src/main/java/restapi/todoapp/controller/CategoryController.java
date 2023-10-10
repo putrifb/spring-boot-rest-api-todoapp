@@ -12,7 +12,6 @@ import restapi.todoapp.dto.response.CommonResponse;
 import restapi.todoapp.service.CategoryService;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/api/v1/categories")
@@ -37,20 +36,14 @@ public class CategoryController {
     }
 //
     @PutMapping("/{categoryId}")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long categoryId, @RequestBody CategoryRequest request) {
-        CategoryResponse response = categoryService.updateCategory(categoryId, request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<CommonResponse> updateCategory(@PathVariable Long categoryId, @RequestBody CategoryRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.updateCategory(categoryId,request));
     }
 //
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Boolean> deleteCategory(@PathVariable Long categoryId) {
-        Boolean isDeleted = categoryService.deleteCategory(categoryId);
-        if (isDeleted){
-            return ResponseEntity.ok().build();
-        } else {
-            return null;
-        }
-
+    public ResponseEntity<CommonResponse> deleteCategory(@PathVariable Long categoryId) {
+       categoryService.deleteCategory(categoryId);
+       return ResponseEntity.ok(new CommonResponse());
     }
 
 
