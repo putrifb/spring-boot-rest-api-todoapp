@@ -95,17 +95,19 @@ public class CategoryService {
     public void deleteCategory(Long categoryId) {
         Optional<Category> optionalCategory = categoryRepository.findByIdAndIsDeletedFalse(categoryId);
 
-        if (optionalCategory.isEmpty()){
+        if (optionalCategory.isPresent()){
+            Long todoCount = todoRepository.countByIsDeletedFalseAndCategory_Id(categoryId);
+
+            if (todoCount > 0 ){
+                throw new ResourceNotFoundException("Category is in use by existing todos and cannot be deleted.");
+            }
+
+            optionalCategory.get().setIsDeleted(true);
+            categoryRepository.save(optionalCategory.get());
+        } else {
             throw new ResourceNotFoundException("Category not found with id : " + categoryId);
         }
 
-        Long todoCount = todoRepository.countByIsDeletedTrueAndCategory_Id(categoryId);
-
-        if (todoCount > 0 ){
-            throw new ResourceNotFoundException("Category is in use by existing todos and cannot be deleted.");
-        }
-
-        categoryRepository.deleteById(categoryId);
     }
 
 

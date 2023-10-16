@@ -33,14 +33,23 @@ public class TodoService {
 
     public CommonResponse insertTodo(TodoRequest todoRequest){
 
-//        String title = ;
+
         if (todoRequest.getTitle() == null || todoRequest.getTitle().isEmpty()){
             throw new ResourceBadRequest("Title cannot be null or empty.");
         }
 
         Todo todo = new Todo();
-
         todo.setTitle(todoRequest.getTitle());
+
+        if (todoRequest.getCategoryId() != null){
+            Optional<Category> optionalCategory = categoryRepository.findByIdAndIsDeletedFalse(todoRequest.getCategoryId());
+
+            if (optionalCategory.isEmpty()){
+                throw new ResourceNotFoundException("Category not found.");
+            }
+            todo.setCategory(optionalCategory.get());
+        }
+
         todo.setDescription(todoRequest.getDescription());
 
         LocalDate dueDate = LocalDate.parse(todoRequest.getDueDate()); //parsing string ke localdate
@@ -52,14 +61,6 @@ public class TodoService {
 
         todo.setIsDeleted(false);
         todo.setUpdatedAt(null);
-
-        if (todoRequest.getCategoryId() != null){
-            Optional<Category> optionalCategory = categoryRepository.findByIdAndIsDeletedFalse(todo.getId());
-
-            if (optionalCategory.isEmpty()){
-                throw new ResourceNotFoundException("Category not found.");
-            }
-        }
 
         Todo saveTodo = todoRepository.save(todo);
         return new CommonResponse(saveTodo.getId());
@@ -93,8 +94,8 @@ public class TodoService {
     public TodoResponse getTodoDetail(Long todoId){
         Optional<Todo> optionalTodo = todoRepository.findById(todoId);
 
-        if (optionalTodo.isEmpty()){
-            throw new ResourceNotFoundException("Todo with not found with id : " + todoId);
+        if (optionalTodo.isEmpty() || optionalTodo.get().getIsDeleted()){
+            throw new ResourceNotFoundException("Todo not found with id : " + todoId);
         }
 
         TodoResponse todoResponse = new TodoResponse();
@@ -119,7 +120,7 @@ public class TodoService {
                 throw new ResourceNotFoundException("Todo with not found with id : " + todoId);
         }
 
-        optionalTodo.get().setTitle(optionalTodo.get().getTitle());
+        optionalTodo.get().setTitle(request.getTitle());
         optionalTodo.get().setDescription(request.getDescription());
         optionalTodo.get().setDueDate(LocalDate.parse(request.getDueDate()));
 

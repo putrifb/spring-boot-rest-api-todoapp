@@ -14,5 +14,5 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     Optional<Todo> findByIdAndIsDeletedFalse(Long id);
 
 
-    Long countByIsDeletedTrueAndCategory_Id(Long categoryId);
+    Long countByIsDeletedFalseAndCategory_Id(Long categoryId);
 }
