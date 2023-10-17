@@ -128,6 +128,14 @@ public class TodoService {
         ZonedDateTime updateAt = ZonedDateTime.now(zoneId);
         optionalTodo.get().setUpdatedAt(updateAt);
 
+        if (request.getCategoryId() != null){
+            Optional<Category> optionalCategory = categoryRepository.findById(request.getCategoryId());
+            if (optionalCategory.isEmpty()){
+                throw new ResourceNotFoundException("Category not found with id : " + request.getCategoryId());
+            }
+            optionalTodo.get().setCategory(optionalCategory.get());
+        }
+
         Todo updatedTodo = todoRepository.save(optionalTodo.get());
         return new CommonResponse(updatedTodo.getId());
     }
